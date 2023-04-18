@@ -6,11 +6,9 @@ on:
       - main # replace with your default branch name
 
 env:
-  PROJECT_ID: <YOUR_PROJECT_ID> # replace with your Google Cloud project ID
-  SERVICE_NAME: <YOUR_JOB_NAME> # replace with the name of your Cloud Run job
-  IMAGE_NAME: <YOUR_IMAGE_NAME> # replace with the name of your Docker image
-  ENV_VAR_NAME: <YOUR_ENV_VAR_NAME> # replace with the name of your environment variable
-  ENV_VAR_VALUE: <YOUR_ENV_VAR_VALUE> # replace with the value of your environment variable
+  PROJECT_ID: meta-sensor-380711
+  SERVICE_NAME: job-quickstart # replace with the name of your Cloud Run job
+  IMAGE_NAME: csv-to-parquet-image # replace with the name of your Docker image
 
 jobs:
   cloud-run-job:
