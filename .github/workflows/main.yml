@@ -49,7 +49,7 @@ jobs:
             --allow-unauthenticated
 
       - name: 'Execute Cloud Run Job'
-        uses: google-github-actions/run-cloud-run-job@v1
+        uses: google-github-actions/cloud-run-job@v1
         with:
           service-name: 'csv-to-parquet'
           project-id: ${{ env.PROJECT_ID }}
