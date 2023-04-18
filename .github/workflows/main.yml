@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  PROJECT_ID: ${{secrets.GCLOUD_PROJECT_ID}}
+  PROJECT_ID: meta-sensor-380711
   REGION: us-central1
 
 jobs:
@@ -54,6 +54,6 @@ jobs:
           service-name: 'csv-to-parquet'
           project-id: ${{ env.PROJECT_ID }}
           location: ${{ env.REGION }}
-          json-payload: '{"input_bucket": "my-bucket", "output_bucket": "my-output-bucket"}'
+          json-payload: '{"input_bucket": "csvfile-bucket", "output_bucket": "bucket-to-store-parquet-in-gcp"}'
           service-account-email: 'my-service-account@my-project.iam.gserviceaccount.com'
           credentials: ${{ secrets.GCLOUD_SA_KEY }}
