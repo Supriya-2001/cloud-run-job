@@ -1,35 +1,34 @@
-name: Cloud Run Job
+name: Build and Deploy to Cloud Run with Workload Identity Federation
 
 on:
   push:
     branches:
-      - main # replace with your default branch name
+      - main
 
 env:
-  PROJECT_ID: meta-sensor-380711
-  SERVICE_NAME: job-quickstart # replace with the name of your Cloud Run job
-  IMAGE_NAME: csv-to-parquet-image # replace with the name of your Docker image
+  PROJECT_ID: ${{secrets.GCLOUD_PROJECT_ID}}
+  REGION: us-central1
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: 'read'
       id-token: 'write'
-      
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+
       - name: 'Set up Python'
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
-        
+
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
-        
+
       - name: 'Authenticate using Workload Identity Federation'
         uses: 'google-github-actions/auth@v1'
         with:
@@ -37,34 +36,24 @@ jobs:
           workload_identity_pool: 'projects/326614876881/locations/global/workloadIdentityPools/my-pool'
           role: 'roles/iam.workloadIdentityUser'
           credentials_json: ${{ secrets.GCLOUD_SA_KEY }}
-      - name: 'Print Access Token'
+
+      - name: 'Build and Deploy'
         run: |
-          echo "Access Token: $GOOGLE_APPLICATION_CREDENTIALS"
-      - name: Configure Docker
-        uses: docker/setup-buildx-action@v1
+          gcloud builds submit \
+            --tag gcr.io/${{ env.PROJECT_ID }}/csv-to-parquet-image
+          gcloud run deploy csv-to-parquet \
+            --image gcr.io/${{ env.PROJECT_ID }}/csv-to-parquet-image:latest \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --allow-unauthenticated
 
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v2
+      - name: 'Execute Cloud Run Job'
+        uses: google-github-actions/run-cloud-run-job@v1
         with:
-          context: .
-          push: true
-          tags: ${{ env.IMAGE_NAME }}
-
-#       - name: 'Authenticate using Workload Identity Federation'
-#         uses: 'google-github-actions/auth@v1'
-#         with:
-#           token_format: 'access_token'
-#           workload_identity_pool: 'projects/326614876881/locations/global/workloadIdentityPools/my-pool'
-#           role: 'roles/iam.workloadIdentityUser'
-#           credentials_json: ${{ secrets.GCLOUD_SA_KEY }}
-#       - name: 'Print Access Token'
-#         run: |
-#           echo "Access Token: $GOOGLE_APPLICATION_CREDENTIALS"
-
-      - name: Deploy Cloud Run Job
-        uses: GoogleCloudPlatform/github-actions/deploy-cloudrun@v1
-        with:
-          service: ${{ env.SERVICE_NAME }}
-          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}
-          region: us-central1 # replace with the desired region
-          service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
+          service-name: 'csv-to-parquet'
+          project-id: ${{ env.PROJECT_ID }}
+          location: ${{ env.REGION }}
+          json-payload: '{"input_bucket": "my-bucket", "output_bucket": "my-output-bucket"}'
+          service-account-email: 'my-service-account@my-project.iam.gserviceaccount.com'
+          credentials: ${{ secrets.GCLOUD_SA_KEY }}
