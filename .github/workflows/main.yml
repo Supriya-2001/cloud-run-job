@@ -49,7 +49,7 @@ jobs:
             --allow-unauthenticated
 
       - name: 'Execute Cloud Run Job'
-        with:
+        run: |
           service-name: 'csv-to-parquet'
           project-id: ${{ env.PROJECT_ID }}
           location: ${{ env.REGION }}
