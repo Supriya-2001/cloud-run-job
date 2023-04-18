@@ -24,7 +24,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v2
         with:
-          context: Supriya-2001/cloud-run-job/blob/main/dockerfile
+          context: .
           dockerfile: Dockerfile
           push: true
           tags: gcr.io/${{ env.PROJECT_ID }}/csv-to-parquet-image-job
