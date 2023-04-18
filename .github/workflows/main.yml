@@ -1,0 +1,45 @@
+name: Cloud Run Job
+
+on:
+  push:
+    branches:
+      - main # replace with your default branch name
+
+env:
+  PROJECT_ID: <YOUR_PROJECT_ID> # replace with your Google Cloud project ID
+  SERVICE_NAME: <YOUR_JOB_NAME> # replace with the name of your Cloud Run job
+  IMAGE_NAME: <YOUR_IMAGE_NAME> # replace with the name of your Docker image
+  ENV_VAR_NAME: <YOUR_ENV_VAR_NAME> # replace with the name of your environment variable
+  ENV_VAR_VALUE: <YOUR_ENV_VAR_VALUE> # replace with the value of your environment variable
+
+jobs:
+  cloud-run-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Configure Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}
+
+      - name: Authenticate with Google Cloud
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
+
+      - name: Deploy Cloud Run Job
+        uses: GoogleCloudPlatform/github-actions/deploy-cloudrun@master
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}
+          region: us-central1 # replace with the desired region
+          service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
+          env_vars: ${{ env.ENV_VAR_NAME }}=${{ env.ENV_VAR_VALUE }}
