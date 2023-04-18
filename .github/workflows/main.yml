@@ -8,6 +8,7 @@ on:
 env:
   PROJECT_ID: meta-sensor-380711
   REGION: us-central1
+  IMAGE_NAME: csv-to-parquet-image-job
 
 jobs:
   deploy:
@@ -21,10 +22,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: 'Set up Python'
-        uses: actions/setup-python@v2
+      - name: Configure Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
         with:
-          python-version: '3.9'
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}
 
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
@@ -39,20 +45,12 @@ jobs:
 
       - name: 'Build and Deploy'
         run: |
-          gcloud builds submit \
-            --tag gcr.io/${{ env.PROJECT_ID }}/csv-to-parquet-image
-          gcloud run deploy csv-to-parquet \
-            --image gcr.io/${{ env.PROJECT_ID }}/csv-to-parquet-image:latest \
-            --platform managed \
-            --region ${{ env.REGION }} \
-            --project ${{ env.PROJECT_ID }} \
-            --allow-unauthenticated
+          gcloud builds submit --tag gcr.io/${{ env.PROJECT_ID }}/csv-to-parquet-image
 
       - name: 'Execute Cloud Run Job'
         run: |
-          service-name: 'csv-to-parquet'
-          project-id: ${{ env.PROJECT_ID }}
-          location: ${{ env.REGION }}
-          json-payload: '{"input_bucket": "csvfile-bucket", "output_bucket": "bucket-to-store-parquet-in-gcp"}'
-          service-account-email: ${{ secrets.GCLOUD_SA_EMAIL}}
-          credentials: ${{ secrets.GCLOUD_SA_KEY }}
+          
+          service: ${{ env.SERVICE_NAME }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}
+          region: us-central1 # replace with the desired region
+          service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
