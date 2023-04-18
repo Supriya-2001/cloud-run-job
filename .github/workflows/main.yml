@@ -49,11 +49,11 @@ jobs:
             --allow-unauthenticated
 
       - name: 'Execute Cloud Run Job'
-        uses: google-github-actions/cloud-run-job@v1
+        uses: google-github-actions/https://github.com/Supriya-2001/cloud-run-job@v1
         with:
           service-name: 'csv-to-parquet'
           project-id: ${{ env.PROJECT_ID }}
           location: ${{ env.REGION }}
           json-payload: '{"input_bucket": "csvfile-bucket", "output_bucket": "bucket-to-store-parquet-in-gcp"}'
-          service-account-email: 'my-service-account@my-project.iam.gserviceaccount.com'
+          service-account-email: ${{ secrets.GCLOUD_SA_EMAIL}}
           credentials: ${{ secrets.GCLOUD_SA_KEY }}
