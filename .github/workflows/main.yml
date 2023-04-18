@@ -27,11 +27,16 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}
 
-      - name: Authenticate with Google Cloud
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: 'Authenticate using Workload Identity Federation'
+        uses: 'google-github-actions/auth@v1'
         with:
-          project_id: ${{ env.PROJECT_ID }}
-          service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
+          token_format: 'access_token'
+          workload_identity_pool: 'projects/326614876881/locations/global/workloadIdentityPools/my-pool'
+          role: 'roles/iam.workloadIdentityUser'
+          credentials_json: ${{ secrets.GCLOUD_SA_KEY }}
+      - name: 'Print Access Token'
+        run: |
+          echo "Access Token: $GOOGLE_APPLICATION_CREDENTIALS"
 
       - name: Deploy Cloud Run Job
         uses: GoogleCloudPlatform/github-actions/deploy-cloudrun@master
@@ -40,4 +45,3 @@ jobs:
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}
           region: us-central1 # replace with the desired region
           service_account_key: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
-          env_vars: ${{ env.ENV_VAR_NAME }}=${{ env.ENV_VAR_VALUE }}
