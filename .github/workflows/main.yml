@@ -35,9 +35,15 @@ jobs:
 
       - name: 'create cloud run job'
         run: |
-          gcloud run jobs create processor1234 --image=gcr.io/meta-sensor-380711/csv-to-parquet-image --region=us-central1 --tasks=1 --task-timeout=3600 --set-env-vars=BUCKET=csvfile-bucket --set-env-vars=PROCESSOR_ID=6699343f3619
+          gcloud run jobs create processor12345 \
+          --image=gcr.io/meta-sensor-380711/csv-to-parquet-image \
+          --region=us-central1 \
+          --tasks=1 \
+          --task-timeout=3600 \
+          --set-env-vars=BUCKET=csvfile-bucket \
+          --set-env-vars=PROCESSOR_ID=6699343f3619 \
       - name: 'Execute Cloud Run Job'
         run: |
-          gcloud run jobs execute processor1234\
+          gcloud run jobs execute processor12345 \
           --region=us-central1 \
   
