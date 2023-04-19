@@ -42,5 +42,5 @@ jobs:
 
       - name: 'Execute Cloud Run Job'
         run: |
-          gcloud beta run jobs execute secondjob1 \
+          gcloud beta run --quiet jobs execute secondjob1 \
           
