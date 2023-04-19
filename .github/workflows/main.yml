@@ -35,14 +35,14 @@ jobs:
 
       - name: 'create cloud run job'
         run: |
-           gcloud run jobs create secondjob12345 \
+           gcloud run jobs create secondjob123456 \
            --image gcr.io/meta-sensor-380711/csv-to-parquet-image \
            --region ${{ env.REGION }} \
            --max-retries 2 \
 
       - name: 'Execute Cloud Run Job'
         run: |
-          gcloud run jobs execute secondjob12345 \
+          gcloud run jobs execute secondjob123456 \
           --region=us-central1 \
-          --service=my-service \
-          --platform=managed
+          --service=csv-to-parquet \
+          --platform=managed \
