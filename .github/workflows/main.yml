@@ -42,7 +42,5 @@ jobs:
 
       - name: 'Execute Cloud Run Job'
         run: |
-          gcloud beta run jobs create ${{ env.JOB_NAME }} \
-            --platform managed \
-            --region ${{ env.REGION }} \
-            --service ${{ env.SERVICE_NAME }} \
+          gcloud beta run jobs execute second-job \
+          
