@@ -39,7 +39,7 @@ jobs:
           --image=gcr.io/meta-sensor-380711/csv-to-parquet-image \
           --region=us-central1 \
           --tasks=1 \
-          --task-timeout=3600 \
+          --task-timeout=300 \
           --set-env-vars=BUCKET=csvfile-bucket \
           --set-env-vars=PROCESSOR_ID=6699343f3619 \
       - name: 'Execute Cloud Run Job'
