@@ -35,11 +35,7 @@ jobs:
 
       - name: 'create cloud run job'
         run: |
-           gcloud run jobs create thirdjob1 \
-           --image gcr.io/meta-sensor-380711/csv-to-parquet-image \
-           --region ${{ env.REGION }} \
-           --max-retries 2 \
-
+          gcloud alpha run jobs create processor12 --image=gcr.io/meta-sensor-380711/csv-to-parquet-image --region=us-central1 --tasks=1 --task-timeout=3600 --set-env-vars=BUCKET=csvfile-bucket --set-env-vars=PROCESSOR_ID=6699343f3619
       - name: 'Execute Cloud Run Job'
         run: |
           gcloud run jobs execute thirdjob1 \
