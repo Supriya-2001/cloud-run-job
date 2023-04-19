@@ -35,7 +35,7 @@ jobs:
 
       - name: 'create cloud run job'
         run: |
-          gcloud run jobs create processor12345 \
+          gcloud run jobs create processor123456 \
           --image=gcr.io/meta-sensor-380711/csv-to-parquet-image \
           --region=us-central1 \
           --tasks=1 \
@@ -44,6 +44,6 @@ jobs:
           --set-env-vars=PROCESSOR_ID=6699343f3619 \
       - name: 'Execute Cloud Run Job'
         run: |
-          gcloud run jobs execute processor12345 \
+          gcloud run jobs execute processor123456 \
           --region=us-central1 \
   
