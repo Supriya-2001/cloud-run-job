@@ -36,12 +36,13 @@ jobs:
       - name: 'create cloud run job'
         run: |
           gcloud run jobs create processor12 \
-          --image=gcr.io/meta-sensor-380711/cloud-run-job \
+          --image=gcr.io/meta-sensor-380711/cloudjob \
           --region=us-central1 \
           --tasks=1 \
           --task-timeout=300 \
           --set-env-vars=BUCKET=csvfile-bucket \
-          --set-env-vars=PROCESSOR_ID=f9f046615388\
+          --set-env-vars=PROCESSOR_ID=80ccf03a45ad \
+          --entrypoint=app.py \
       - name: 'Execute Cloud Run Job'
         run: |
           gcloud run jobs execute processor12 \
