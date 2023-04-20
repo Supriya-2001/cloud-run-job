@@ -42,7 +42,7 @@ jobs:
           --task-timeout=300 \
           --set-env-vars=BUCKET=csvfile-bucket \
           --set-env-vars=PROCESSOR_ID=80ccf03a45ad \
-          --entrypoint=app.py \
+        
       - name: 'Execute Cloud Run Job'
         run: |
           gcloud run jobs execute processor12 \
