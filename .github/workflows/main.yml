@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: meta-sensor-380711
   REGION: us-central1
-  JOB_NAME: cloud-run-job
+  JOB_NAME: git-cloudjob
 
 jobs:
   deploy:
@@ -35,16 +35,16 @@ jobs:
 
       - name: 'create cloud run job'
         run: |
-          gcloud run jobs create processor12 \
-          --image=gcr.io/meta-sensor-380711/cloudjob \
+          gcloud run jobs create git-cloudjob \
+          --image=gcr.io/meta-sensor-380711/cloudjob-updated\
           --region=us-central1 \
           --tasks=1 \
           --task-timeout=300 \
           --set-env-vars=BUCKET=csvfile-bucket \
-          --set-env-vars=PROCESSOR_ID=80ccf03a45ad \
+          --set-env-vars=PROCESSOR_ID=2271838ac1cc \
         
       - name: 'Execute Cloud Run Job'
         run: |
-          gcloud run jobs execute processor12 \
+          gcloud run jobs execute git-cloudjob \
           --region=us-central1 \
   
