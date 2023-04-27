@@ -1,69 +1,91 @@
-import os
-import json
-import tempfile
+from tempfile import NamedTemporaryFile
 import pandas as pd
-from flask import Flask, request
 from google.cloud import storage
+import os
+# import json
+# from flask import Flask, request
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-# Cloud Run service to convert CSV to compressed Parquet
-@app.route('/', methods=['POST'])
-def csv_to_parquet():
-    content_type = request.headers.get('Content-Type')
-    if(content_type=='application/json'):
-        gcs_json = json.loads(request.data)
-    else:
-        return "Checking for JSON failed"
 
-    file_path = gcs_json['file_path']
-    file_name = gcs_json['file_name']
-    bucket_name = gcs_json['bucket_name']
+# @app.route('/', methods=['POST'])
+def convert_csv_to_parquet():
+    # content_type = request.headers.get('Content-Type')
+    # if(content_type=='application/json'):
+    #     gcs_json = json.loads(request.data)
+    # else:
+    #     return "Checking for JSON failed"
 
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(file_name)
+    # file_path = gcs_json['file_path']
+    # file_name = gcs_json['file_name']
+    # bucket_name = gcs_json['bucket_name']
+    file_path= 'gs://csvfile-bucket/csv (1).csv'
+   
 
-    _, temp_local_filename = tempfile.mkstemp()
-    blob.download_to_filename(temp_local_filename)
+    i=0
+    chunk_count = 0
+    converted_bucket_name = "parquetfile-bucket"
+    CHUNK_SIZE = 100000  # 1GB
+    
+    for chunk in pd.read_csv(file_path, chunksize=CHUNK_SIZE):
+        modification_of_csv_file(chunk)
+        print("Modification is done")
 
-    print('File downloaded to {}.'.format(temp_local_filename))
+        converted_blob_name = 'Data{}'.format(i) + '.parquet'
+        parquet_file_path = 'gs://{}/{}'.format(converted_bucket_name,converted_blob_name)
 
-    df = pd.read_csv(temp_local_filename)
+        chunk.to_parquet(parquet_file_path, engine="fastparquet", compression="snappy")
+    
+        print(f"{chunk.shape} of csv data is converted to parquet")
 
-    df['full_name'] = df['First Name'] + ' ' + df['Last Name']
-    df['total_marks'] = df['Maths'] + df['Science'] + df['English'] + df['History']
+        
+        print("chunk is uploaded to bucket")
 
-    _, converted_file_name = tempfile.mkstemp(suffix=".parquet")
+       
 
-    df.to_parquet(
-        converted_file_name,
-        index=False,
-        compression="gzip"
-    )
+        chunk_count += 1
+        i += 1   
 
-    print('File converted to compressed Parquet format.')
+    print("All files are uploaded to gcs bucket")
 
-    # Upload the converted Parquet file to GCS
-    converted_bucket_name = "bucket-to-store-parquet-in-gcp"
-    converted_blob_name = os.path.splitext(file_name)[0] + '.parquet'
-    converted_file_path = "gs://{}/{}".format(converted_bucket_name, converted_blob_name)
 
-    print('Uploading converted file to {}.'.format(converted_file_path))
-
-    converted_bucket = storage_client.bucket(converted_bucket_name)
-    converted_blob = converted_bucket.blob(converted_blob_name)
-    converted_blob.upload_from_filename(converted_file_name)
-
-    print('File uploaded to {} contents from {}'.format(converted_file_path, converted_file_name))
-
-    # Delete the temporary file
-    os.remove(temp_local_filename)
-    os.remove(converted_file_name)
+    print("Trying to create a new file")
+    Compose_all_file(chunk_count)
+    delete_parquet_files(chunk_count)
 
     return "Success"
 
+def Compose_all_file(chunk_count):
+    storage_client = storage.Client()
+    converted_bucket_name = "parquetfile-bucket"
+    bucket = storage_client.bucket(converted_bucket_name)
+    destination = bucket.blob('Final.parquet')
+    mylist = []
+    for j in range(chunk_count):
+        mylist.append(bucket.blob('Data{}'.format(j) + '.parquet'))
+        j +=1
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    app.run(debug=False, host='0.0.0.0', port=port)
+
+    destination.compose(mylist)
+    
+
+
+def delete_parquet_files(chunk_count):
+    storage_client = storage.Client()
+    converted_bucket_name = "parquetfile-bucket"
+    bucket = storage_client.bucket(converted_bucket_name)
+    for i in range(chunk_count):
+        destination = bucket.blob('Data{}'.format(i) + '.parquet')
+        destination.delete()
+
+    
+def modification_of_csv_file(chunk):
+    chunk['Full Name'] = chunk['First Name'] + ' ' + chunk['Last Name']
+    chunk['Total Marks'] = chunk['Maths'] + chunk['Science'] + chunk['English']+ chunk['History']
+
+
+if __name__ == "__main__":
+    convert_csv_to_parquet()
+    # port= int(os.environ.get('PORT',8080))
+    # app.run(debug=True,host='0.0.0.0',port=port)
+
